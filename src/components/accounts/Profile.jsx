@@ -6,39 +6,75 @@ class Profile extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            nombre: null,
-            apellidos: null,
-            telefono: null
+            user: null,
+            profileUser: {
+                name: null,
+                apellidos: null,
+                telefono: null,
+                edad: null
+            }
         }
     }
 
-    componentDidMount = async() => {
-        await console.log(this.props.user.uid)        
-        let uid = await this.props.user.uid
-        await this.props.db.collection('users').doc(uid).get()
-            .then(async(doc)=>
-                doc.exists ?
-                    doc.data().name != null ?
-                        await this.setState({nombre: doc.data().name})
-                    : null
-                : await alert("No existeeeeeees")
-            )
-            .catch(async(err)=>{
-                await console.log(err)
-                await alert("Hubo un error")
+    componentDidMount = () => {
+        let uid = this.props.match.params.uid
+        firebase.firestore().collection('users').doc(uid).get()
+            .then((doc)=>{
+                if(doc.exists){
+                    let aux = {
+                        name: doc.data().name,
+                        apellidos: doc.data().apellidos,
+                        telefono: doc.data().telefono,
+                        edad: doc.data().edad
+                    }
+                    this.setState({user: doc.data(), profileUser: aux})
+                }
+                else
+                {
+                    console.log("NO")
+                }
             })
     }
 
     changeName = (e) => {
-        this.setState({nombre: e.target.value})
+        let data = this.state.profileUser
+        data.name = e.target.value
+        this.setState({profileUser: data})
     }
 
     changeLastName = (e) => {
-        this.setState({apellidos: e.target.value})
+        let data = this.state.profileUser
+        data.apellidos = e.target.value
+        this.setState({profileUser: data})
     }
 
     changePhone = (e) => {
-        this.setState({telefono: e.target.value})
+        let data = this.state.profileUser
+        data.telefono = e.target.value
+        this.setState({profileUser: data})
+    }
+
+    changeEdad = (e) => {
+        let data = this.state.profileUser
+        data.edad = e.target.value
+        this.setState({profileUser: data})
+    }
+
+    updateProfile = () => {
+        let ref = firebase.firestore().collection('users').doc(this.props.match.params.uid)
+        ref.update({
+            name: this.state.profileUser.name,
+            apellidos: this.state.profileUser.apellidos,
+            telefono: this.state.profileUser.telefono,
+            edad: this.state.profileUser.edad
+        })
+        .then(()=>{
+            alert("Datos actualizados correctamente")
+        })
+        .catch(err=>{
+            alert("OCurrió un error al actualizar información")
+            console.log(err)
+        })
     }
 
     render(){
@@ -58,37 +94,70 @@ class Profile extends Component {
             }}>
                 Perfil 
             </p>
+
             {
-                this.state.nombre ?
-                    this.state.nombre != null ? 
-                    <Input 
-                    prefix={<Icon type="user" style={{color: "#61B7C4"}} />}
-                    placeholder="Nombre"
-                    onChange={(e)=>this.changeName(e)}
-                    />
-                : null
+                this.state.user ?
+               this.state.user.name ?
+               <Input 
+               prefix={<Icon type="user" style={{color: "#61B7C4"}} />}
+               placeholder="Nombre"
+               value={this.state.profileUser.name}
+               onChange={(e)=>this.changeName(e)}
+           />
                 :null
+                 :null
             }
            
+            {
+                this.state.user ? 
+                    this.state.user.apellidos ?
+                    <Input 
+                    prefix={<Icon type="user" style={{color: "#61B7C4"}} />}
+                    placeholder="Apellidos"
+                    value={this.state.profileUser.apellidos}
+                    onChange={(e)=>this.changeLastName(e)}
+                    />
+                    : 
+                    null
+            : null
+            }
 
-            <Input 
-                prefix={<Icon type="user" style={{color: "#61B7C4"}} />}
-                placeholder="Apellidos"
-                onChange={(e)=>this.changeLastName(e)}
-            />
+            {
+                this.state.user ?
+                    this.state.user.telefono ?
+                    <Input 
+                    prefix={<Icon type="user" style={{color: "#61B7C4"}} />}
+                    placeholder="Teléfono"
+                    value={this.state.profileUser.telefono}
+                    onChange={(e)=>this.changePhone(e)}
+                    />
+                    :
+                   null
+            : null
+            }
 
-            <Input 
-                prefix={<Icon type="user" style={{color: "#61B7C4"}} />}
-                placeholder="Teléfono"
-                onChange={(e)=>this.changePhone(e)}
-            />
+            {
+                this.state.user ?
+                    this.state.user.edad ?
+                    <Input 
+                    prefix={<Icon type="user" style={{color: "#61B7C4"}} />}
+                    placeholder="Edad"
+                    value={this.state.profileUser.edad}
+                    onChange={(e)=>this.changeEdad(e)}
+                    />
+                    :
+                    null
+            : null
+            }
+
+            
            
             <Button 
                 style={{backgroundColor: "#61B7C4", color: "#fff"}}
                 shape="round" 
                 icon="user-add" 
                 size="small"
-                onClick={this.comparePasswords}
+                onClick={this.updateProfile}
                 >
                     Actualizar perfil
             </Button>

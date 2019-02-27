@@ -56,7 +56,9 @@ class App extends Component {
           name: response.user.displayName,
           photo: response.user.photoURL,
           email: response.user.email,
+          provider: "Google"
         })
+        window.location.assign(`/profile/${response.user.uid}`)
       })
       .catch(err=>console.log(err))
   }
@@ -68,8 +70,10 @@ class App extends Component {
         this.db.collection('users').doc(response.user.uid).set({
           uid: response.user.uid,
           email: response.user.email,
+          provider: "email"
         })
         alert("Se ha registrado el usuario correctamente")
+        window.location.assign(`/profile/${response.user.uid}`)
       })
       .catch((err)=>{
         console.log(err)
@@ -114,8 +118,9 @@ class App extends Component {
           />
 
           <Route
-          exact path="/profile"
-          render={()=><Profile user={this.state.user} db={this.db} />}
+          exact path="/profile/:uid"
+          //render={()=><Profile user={this.state.user} db={this.db} />}
+          component={Profile}
           />
 
         </Switch>
