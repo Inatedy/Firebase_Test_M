@@ -8,6 +8,7 @@ import FooterComponent from './components/common/Footer'
 import Home from './components/home/Home'
 import Register from './components/accounts/Register'
 import Login from './components/accounts/Login'
+import Profile from './components/accounts/Profile'
 
 import firebase from 'firebase'
 
@@ -15,6 +16,7 @@ class App extends Component {
 
   constructor(props) {
     super(props)
+    this.db = firebase.firestore()
     this.state = {
       user: null
     }
@@ -47,14 +49,26 @@ class App extends Component {
   loginGoogle = () => {
     const provider = new firebase.auth.GoogleAuthProvider()
     firebase.auth().signInWithPopup(provider)
-      .then(user=>console.log(user))
+      .then(response=>{
+        console.log(response.user)
+        this.db.collection('users').doc(response.user.uid).set({
+          uid: response.user.uid,
+          name: response.user.displayName,
+          photo: response.user.photoURL,
+          email: response.user.email,
+        })
+      })
       .catch(err=>console.log(err))
   }
 
-  loginEmail = (email, password) => {
+  registerEmail = (email, password) => {
     firebase.auth().createUserWithEmailAndPassword(email, password)
-      .then((user)=>{
-        console.log(user)
+      .then((response)=>{
+        //console.log(response.user)
+        this.db.collection('users').doc(response.user.uid).set({
+          uid: response.user.uid,
+          email: response.user.email,
+        })
         alert("Se ha registrado el usuario correctamente")
       })
       .catch((err)=>{
@@ -89,7 +103,7 @@ class App extends Component {
               loginGoogle={this.loginGoogle}
               user={this.state.user}
               logout={this.logout}
-              loginEmail={this.loginEmail}
+              registerEmail={this.registerEmail}
             />} 
 
           />
@@ -97,6 +111,11 @@ class App extends Component {
           <Route 
             exact path="/login"
             render={()=><Login iniciar={this.iniciarSesion} />}
+          />
+
+          <Route
+          exact path="/profile"
+          render={()=><Profile user={this.state.user} db={this.db} />}
           />
 
         </Switch>

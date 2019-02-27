@@ -25,7 +25,7 @@ class Register extends Component {
 
     comparePasswords = () => {
         this.state.password === this.state.confirm_password ?
-            this.props.loginEmail(this.state.correo, this.state.password)        
+            this.props.registerEmail(this.state.correo, this.state.password)        
         : alert("Las contraseñas no coinciden")
     }
 
